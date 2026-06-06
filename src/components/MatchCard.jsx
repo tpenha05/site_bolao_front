@@ -25,15 +25,15 @@ export default function MatchCard({ match, competitionId, bet }) {
   const raw = match.data || {}
   const started = isMatchStarted(match.kickoff_utc)
 
-  // null final → TeamFlag mostra "A definir" (correto pra knockout antes de definir)
-  // Fallback usa o nome embutido no próprio payload do jogo quando o team object não veio.
-  const teamFromRaw = (idKey, nameKey) => {
-    if (!raw[idKey] || raw[idKey] === '0') return null
-    if (!raw[nameKey]) return null
-    return { id: raw[idKey], name_en: raw[nameKey], fifa_code: '', flag: null }
+  // Quando o team object não veio (knockout sem time definido), usa o
+  // home_team_label/away_team_label da API (ex: "Winner Group A").
+  const labelFallback = (labelKey) => {
+    const label = raw[labelKey]
+    if (!label) return null
+    return { id: '0', name_en: label, fifa_code: '', flag: null }
   }
-  const homeTeam = match.home_team ?? teamFromRaw('home_team_id', 'home_team_name_en')
-  const awayTeam = match.away_team ?? teamFromRaw('away_team_id', 'away_team_name_en')
+  const homeTeam = match.home_team ?? labelFallback('home_team_label')
+  const awayTeam = match.away_team ?? labelFallback('away_team_label')
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-4">

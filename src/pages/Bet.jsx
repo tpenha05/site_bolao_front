@@ -60,12 +60,13 @@ export default function Bet() {
   }
 
   const raw = match?.data || {}
-  const buildFallback = (idKey, nameKey) => {
-    if (!raw[idKey] || raw[idKey] === '0' || !raw[nameKey]) return null
-    return { id: raw[idKey], name_en: raw[nameKey], fifa_code: '', flag: null }
+  const labelFallback = (labelKey) => {
+    const label = raw[labelKey]
+    if (!label) return null
+    return { id: '0', name_en: label, fifa_code: '', flag: null }
   }
-  const homeTeam = match?.home_team || buildFallback('home_team_id', 'home_team_name_en')
-  const awayTeam = match?.away_team || buildFallback('away_team_id', 'away_team_name_en')
+  const homeTeam = match?.home_team || labelFallback('home_team_label')
+  const awayTeam = match?.away_team || labelFallback('away_team_label')
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -160,8 +161,12 @@ export default function Bet() {
                   value={topScorer}
                   onChange={e => setTopScorer(e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 transition"
-                  placeholder="Nome do jogador"
+                  placeholder="Ex: Mbappé"
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  Digite o nome como aparece na escalação (geralmente o sobrenome).
+                  Em caso de empate de gols, qualquer um dos artilheiros vale.
+                </p>
               </div>
 
               <div className="bg-gray-50 rounded-xl p-3 text-xs text-gray-500 space-y-1">
