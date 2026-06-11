@@ -83,6 +83,12 @@ export default function CompetitionDetail() {
     return matchBets.bets?.find(b => b.user_id === user?.id) ?? null
   }
 
+  const getAllBetsForMatch = (matchId) => {
+    if (!betsData) return []
+    const matchBets = betsData.matches?.find(m => m.match_id === matchId)
+    return matchBets?.bets ?? []
+  }
+
   if (loadingComp) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -193,6 +199,8 @@ export default function CompetitionDetail() {
                         match={match}
                         competitionId={id}
                         bet={getBetForMatch(match.match_id)}
+                        allBets={getAllBetsForMatch(match.match_id)}
+                        currentUserId={user?.id}
                       />
                     ))}
                   </div>
