@@ -35,6 +35,7 @@ export default function CompetitionDetail() {
   const [tab, setTab] = useState('bets')
   const [copied, setCopied] = useState(false)
   const [selectedRound, setSelectedRound] = useState(null)
+  const [showPast, setShowPast] = useState(false)
 
   // Define a rodada default = próxima a acontecer (ou em andamento)
   useEffect(() => {
@@ -50,9 +51,19 @@ export default function CompetitionDetail() {
   const { matches: roundMatches, loading: loadingMatches, error: matchesError } = useMatches(selectedRound)
   const { betsData } = useCompetitionBets(id)
 
-  const visibleMatches = useMemo(() =>
+  const sortedMatches = useMemo(() =>
     [...roundMatches].sort((a, b) => new Date(a.kickoff_utc) - new Date(b.kickoff_utc)),
     [roundMatches]
+  )
+
+  const pastCount = useMemo(
+    () => sortedMatches.filter(m => m.finished).length,
+    [sortedMatches]
+  )
+
+  const visibleMatches = useMemo(
+    () => (showPast ? sortedMatches : sortedMatches.filter(m => !m.finished)),
+    [sortedMatches, showPast]
   )
 
   const currentStage = useMemo(() => {
@@ -189,8 +200,28 @@ export default function CompetitionDetail() {
                   </div>
                 </div>
 
+                {pastCount > 0 && (
+                  <div className="mb-3 flex justify-center">
+                    <button
+                      onClick={() => setShowPast(v => !v)}
+                      className="text-xs px-3 py-1.5 rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors font-medium flex items-center gap-1.5"
+                    >
+                      <svg className={`w-3.5 h-3.5 transition-transform ${showPast ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                      {showPast
+                        ? `Ocultar jogos passados (${pastCount})`
+                        : `Ver jogos passados (${pastCount})`}
+                    </button>
+                  </div>
+                )}
+
                 {visibleMatches.length === 0 ? (
-                  <p className="text-center text-gray-400 text-sm py-10">Nenhum jogo nesta rodada.</p>
+                  <p className="text-center text-gray-400 text-sm py-10">
+                    {pastCount > 0 && !showPast
+                      ? 'Todos os jogos desta rodada já passaram.'
+                      : 'Nenhum jogo nesta rodada.'}
+                  </p>
                 ) : (
                   <div className="grid gap-3">
                     {visibleMatches.map(match => (
@@ -213,6 +244,7 @@ export default function CompetitionDetail() {
             <RankingTable
               participants={competition?.participants}
               totalMatches={104}
+              competitionId={id}
             />
           )}
         </div>

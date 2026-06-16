@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 function Avatar({ name }) {
@@ -21,12 +22,15 @@ function Medal({ position }) {
   return <span className="text-gray-400 text-sm font-medium w-7 text-center">{position}º</span>
 }
 
-export default function RankingTable({ participants, totalMatches }) {
+export default function RankingTable({ participants, totalMatches, competitionId }) {
   const { user } = useAuth()
+  const navigate = useNavigate()
 
   if (!participants || participants.length === 0) {
     return <p className="text-center text-gray-400 py-8">Nenhum participante ainda.</p>
   }
+
+  const linkable = Boolean(competitionId)
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-100">
@@ -42,11 +46,10 @@ export default function RankingTable({ participants, totalMatches }) {
         <tbody className="divide-y divide-gray-50">
           {participants.map((p, i) => {
             const isMe = user && p.user_id === user.id
-            return (
-              <tr
-                key={p.user_id}
-                className={`transition-colors ${isMe ? 'bg-brand-50 border-l-4 border-l-brand-500' : 'hover:bg-gray-50'}`}
-              >
+            const baseCls = `transition-colors ${isMe ? 'bg-brand-50 border-l-4 border-l-brand-500' : 'hover:bg-gray-50'} ${linkable ? 'cursor-pointer' : ''}`
+
+            const cells = (
+              <>
                 <td className="px-4 py-3">
                   <Medal position={i + 1} />
                 </td>
@@ -69,6 +72,20 @@ export default function RankingTable({ participants, totalMatches }) {
                     {p.total_points} pts
                   </span>
                 </td>
+              </>
+            )
+
+            if (!linkable) {
+              return <tr key={p.user_id} className={baseCls}>{cells}</tr>
+            }
+
+            return (
+              <tr
+                key={p.user_id}
+                className={baseCls}
+                onClick={() => navigate(`/competitions/${competitionId}/players/${p.user_id}`)}
+              >
+                {cells}
               </tr>
             )
           })}

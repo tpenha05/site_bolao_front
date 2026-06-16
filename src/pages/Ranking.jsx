@@ -41,7 +41,7 @@ export default function Ranking() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6">
-        <RankingTable participants={competition?.participants} />
+        <RankingTable participants={competition?.participants} competitionId={id} />
       </main>
     </div>
   )

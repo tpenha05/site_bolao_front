@@ -9,6 +9,7 @@ import Competitions from './pages/Competitions'
 import CompetitionDetail from './pages/CompetitionDetail'
 import Bet from './pages/Bet'
 import Ranking from './pages/Ranking'
+import Player from './pages/Player'
 
 export default function App() {
   return (
@@ -33,6 +34,10 @@ export default function App() {
             <Route
               path="/competitions/:id/ranking"
               element={<ProtectedRoute><Ranking /></ProtectedRoute>}
+            />
+            <Route
+              path="/competitions/:id/players/:userId"
+              element={<ProtectedRoute><Player /></ProtectedRoute>}
             />
             <Route path="/" element={<Navigate to="/competitions" replace />} />
             <Route path="*" element={<Navigate to="/competitions" replace />} />
