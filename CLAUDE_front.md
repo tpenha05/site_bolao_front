@@ -51,6 +51,7 @@ Todas as rotas exceto `/login` e `/register` são protegidas por `ProtectedRoute
 - Botão de apostar **desabilitado** se `kickoff_utc` já passou — mostrar mensagem clara
 - Apostas dos outros participantes só aparecem após início do jogo — tratar dados ausentes sem quebrar a UI
 - Link de convite: `{window.location.origin}/join/{codigo}`
+- Nos mata-matas, se o placar previsto é empate, mostrar seletor `predicted_classifier` (`"home"`/`"away"`) — só pontua se o jogo for decidido nos pênaltis. Campo do artilheiro foi descontinuado.
 
 ## Design
 

@@ -14,16 +14,23 @@ function StatusBadge({ match }) {
   return <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">Em aberto</span>
 }
 
-function BetBadge({ bet }) {
+function classifierName(bet, homeTeam, awayTeam) {
+  if (bet?.predicted_classifier === 'home') return homeTeam?.name_en || 'Casa'
+  if (bet?.predicted_classifier === 'away') return awayTeam?.name_en || 'Fora'
+  return null
+}
+
+function BetBadge({ bet, homeTeam, awayTeam }) {
   if (!bet) return <span className="text-xs text-gray-400">Sem aposta</span>
+  const classified = classifierName(bet, homeTeam, awayTeam)
   return (
     <div className="flex flex-col items-start gap-0.5">
       <span className="text-xs px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full font-medium">
         {bet.predicted_home_score} × {bet.predicted_away_score}
       </span>
-      {bet.predicted_top_scorer && (
+      {classified && (
         <span className="text-[10px] text-gray-500 px-2 leading-tight">
-          Artilheiro: {bet.predicted_top_scorer}
+          Classificado: {classified}
         </span>
       )}
     </div>
@@ -47,9 +54,9 @@ function OtherBetsModal({ open, onClose, match, homeTeam, awayTeam, allBets, cur
             <li key={b.user_id} className="py-2.5 flex items-center justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-800 truncate">{b.user_name}</p>
-                {b.predicted_top_scorer && (
+                {classifierName(b, homeTeam, awayTeam) && (
                   <p className="text-[11px] text-gray-500 truncate">
-                    Artilheiro: {b.predicted_top_scorer}
+                    Classificado: {classifierName(b, homeTeam, awayTeam)}
                   </p>
                 )}
               </div>
@@ -114,7 +121,7 @@ export default function MatchCard({ match, competitionId, bet, allBets, currentU
       </div>
 
       <div className="mt-3 flex items-center justify-between gap-2">
-        <BetBadge bet={bet} />
+        <BetBadge bet={bet} homeTeam={homeTeam} awayTeam={awayTeam} />
         {!started && competitionId && (
           <Link
             to={`/competitions/${competitionId}/bet/${match.match_id}`}

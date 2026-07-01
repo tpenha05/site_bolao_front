@@ -22,15 +22,15 @@ function CategoryBadge({ points }) {
     ? 'bg-emerald-100 text-emerald-700'
     : cat.resultado
       ? 'bg-blue-100 text-blue-700'
-      : cat.artilheiro
+      : cat.classificado
         ? 'bg-amber-100 text-amber-700'
         : 'bg-gray-100 text-gray-500'
   const label = cat.exato
     ? 'Placar exato'
     : cat.resultado
       ? 'Resultado'
-      : cat.artilheiro
-        ? 'Artilheiro'
+      : cat.classificado
+        ? 'Classificado'
         : 'Errou'
   return (
     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${cls}`}>
@@ -46,6 +46,12 @@ function StatCard({ label, value, accent }) {
       <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">{label}</p>
     </div>
   )
+}
+
+function classifierName(bet, homeTeam, awayTeam) {
+  if (bet?.predicted_classifier === 'home') return homeTeam?.name_en || 'Casa'
+  if (bet?.predicted_classifier === 'away') return awayTeam?.name_en || 'Fora'
+  return null
 }
 
 function BetRow({ match, bet, homeTeam, awayTeam }) {
@@ -87,9 +93,9 @@ function BetRow({ match, bet, homeTeam, awayTeam }) {
         </div>
       </div>
 
-      {bet?.predicted_top_scorer && (
+      {classifierName(bet, homeTeam, awayTeam) && (
         <p className="text-[11px] text-gray-500 mt-2 text-center">
-          Artilheiro: <span className="text-gray-700">{bet.predicted_top_scorer}</span>
+          Classificado: <span className="text-gray-700">{classifierName(bet, homeTeam, awayTeam)}</span>
         </p>
       )}
     </div>
@@ -220,7 +226,7 @@ export default function Player() {
         <div className="grid grid-cols-4 gap-2">
           <StatCard label="Placar exato" value={filteredSummary.exatos} accent="text-emerald-600" />
           <StatCard label="Resultado" value={filteredSummary.resultados} accent="text-blue-600" />
-          <StatCard label="Artilheiro" value={filteredSummary.artilheiros} accent="text-amber-600" />
+          <StatCard label="Classificado" value={filteredSummary.classificados} accent="text-amber-600" />
           <StatCard label="Errou" value={filteredSummary.erros} accent="text-gray-400" />
         </div>
 
@@ -276,7 +282,9 @@ export default function Player() {
                         <p className="text-sm text-gray-700 font-medium">Jogo #{b.match_id}</p>
                         <p className="text-[11px] text-gray-400">
                           Apostou {b.predicted_home_score} × {b.predicted_away_score}
-                          {b.predicted_top_scorer && <> · {b.predicted_top_scorer}</>}
+                          {b.predicted_classifier && (
+                            <> · Classificado: {b.predicted_classifier === 'home' ? 'casa' : 'fora'}</>
+                          )}
                         </p>
                       </div>
                       <div className="flex items-center gap-1.5 flex-shrink-0">

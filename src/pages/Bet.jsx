@@ -15,7 +15,7 @@ export default function Bet() {
 
   const [homeScore, setHomeScore] = useState('')
   const [awayScore, setAwayScore] = useState('')
-  const [topScorer, setTopScorer] = useState('')
+  const [classifier, setClassifier] = useState(null) // 'home' | 'away' | null
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -23,11 +23,16 @@ export default function Bet() {
     if (bet) {
       setHomeScore(String(bet.predicted_home_score))
       setAwayScore(String(bet.predicted_away_score))
-      setTopScorer(bet.predicted_top_scorer || '')
+      setClassifier(bet.predicted_classifier || null)
     }
   }, [bet])
 
   const started = match ? isMatchStarted(match.kickoff_utc) : false
+  const hn = Number(homeScore)
+  const an = Number(awayScore)
+  const isDraw = homeScore !== '' && awayScore !== '' && hn === an
+  const raw = match?.data || {}
+  const isKnockout = raw.type && raw.type !== 'group'
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -38,9 +43,9 @@ export default function Bet() {
       const { data } = await api.post('/bets', {
         competition_id: competitionId,
         match_id: Number(matchId),
-        predicted_home_score: Number(homeScore),
-        predicted_away_score: Number(awayScore),
-        predicted_top_scorer: topScorer.trim() || null,
+        predicted_home_score: hn,
+        predicted_away_score: an,
+        predicted_classifier: isDraw && isKnockout ? classifier : null,
       })
       setBet(data)
       navigate(`/competitions/${competitionId}`)
@@ -59,7 +64,6 @@ export default function Bet() {
     )
   }
 
-  const raw = match?.data || {}
   const labelFallback = (labelKey) => {
     const label = raw[labelKey]
     if (!label) return null
@@ -152,27 +156,45 @@ export default function Bet() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Artilheiro do jogo <span className="text-gray-400 font-normal">(opcional, +1 pt)</span>
-                </label>
-                <input
-                  type="text"
-                  value={topScorer}
-                  onChange={e => setTopScorer(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 transition"
-                  placeholder="Ex: Mbappé"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Digite o nome como aparece na escalação (geralmente o sobrenome).
-                  Em caso de empate de gols, qualquer um dos artilheiros vale.
-                </p>
-              </div>
+              {isKnockout && isDraw && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quem se classifica? <span className="text-gray-400 font-normal">(bônus +1 pt se decidido nos pênaltis)</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { side: 'home', team: homeTeam, fallback: 'Casa' },
+                      { side: 'away', team: awayTeam, fallback: 'Fora' },
+                    ].map(({ side, team, fallback }) => (
+                      <button
+                        key={side}
+                        type="button"
+                        onClick={() => setClassifier(side)}
+                        className={`flex items-center justify-center gap-2 border-2 rounded-xl py-2.5 px-3 text-sm font-medium transition ${
+                          classifier === side
+                            ? 'border-brand-500 bg-brand-50 text-brand-700'
+                            : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        {team?.flag && (
+                          <img src={team.flag} alt="" className="w-6 h-4 object-cover rounded shadow-sm" />
+                        )}
+                        <span className="truncate">{team?.name_en || fallback}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Só pontua se o jogo for decidido nos pênaltis. Se acabar no tempo normal ou na prorrogação, esta escolha é ignorada.
+                  </p>
+                </div>
+              )}
 
               <div className="bg-gray-50 rounded-xl p-3 text-xs text-gray-500 space-y-1">
                 <p><strong className="text-brand-700">5 pts</strong> — Placar exato</p>
                 <p><strong className="text-gray-700">2 pts</strong> — Resultado correto (vitória/empate)</p>
-                <p><strong className="text-gray-700">+1 pt</strong> — Artilheiro correto (bônus)</p>
+                {isKnockout && (
+                  <p><strong className="text-gray-700">+1 pt</strong> — Classificado correto nos pênaltis</p>
+                )}
               </div>
 
               <button
